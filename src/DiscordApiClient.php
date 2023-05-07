@@ -39,7 +39,9 @@ class DiscordApiClient
       'Authorization: Bot ' . $this->config['bot']['token'],
     ];
 
-    $headers = array_merge($default_headers, $headers);
+    if (empty($headers)) {
+      $headers = $default_headers;
+    }
 
     // Если указано время жизни кеша, попробуйте получить данные из кеша
     if ($cache_ttl) {
@@ -58,7 +60,7 @@ class DiscordApiClient
     curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 1);
 
     if (!empty($data)) {
-      curl_setopt($this->ch, CURLOPT_POSTFIELDS, json_encode($data));
+      curl_setopt($this->ch, CURLOPT_POSTFIELDS, http_build_query($data));
     }
 
     // Применяем пользовательские опции
