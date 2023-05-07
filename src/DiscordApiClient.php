@@ -2,25 +2,33 @@
 
 namespace Naneynonn;
 
-use Predis\Client as PredisClient;
+use Naneynonn\Methods\Guild;
 
+use Predis\Client as PredisClient;
 use CurlHandle;
 
 class DiscordApiClient
 {
-  private const VERSION = 'v10';
-  private const API_URL = 'https://discord.com/api/';
-  private const URL = self::API_URL . self::VERSION;
   private const NAME = 'wrapper';
 
   private array $config;
-  private ?CurlHandle $ch = null;
+  private ?CurlHandle $ch;
   private PredisClient $predisClient;
 
   public function __construct($config)
   {
     $this->config = $config;
     $this->predisClient = new PredisClient();
+
+    $this->ch = curl_init();
+  }
+
+  public function __destruct()
+  {
+    if ($this->ch) {
+      curl_close($this->ch);
+      $this->ch = null;
+    }
   }
 
   public function apiRequest(string $url, string $method, array $data = [], array $headers = [], array $options = [], ?int $cache_ttl = null)
@@ -40,10 +48,6 @@ class DiscordApiClient
       if ($cached_response) {
         return json_decode($cached_response, true);
       }
-    }
-
-    if (!$this->ch) {
-      $this->ch = curl_init();
     }
 
     curl_setopt($this->ch, CURLOPT_URL, $url);
@@ -88,27 +92,13 @@ class DiscordApiClient
     return json_decode($response, true);
   }
 
-  public function closeConnection(): void
+  public function serverId(): string
   {
-    if ($this->ch) {
-      curl_close($this->ch);
-      $this->ch = null;
-    }
+    return $this->config['guild']['id'];
   }
 
-  public function getGuild(array $options = [], ?int $cache_ttl = null)
+  public function guild(): Guild
   {
-    $url = self::URL . '/guilds/' . $this->config['guild']['id'];
-    $method = "GET";
-    return $this->apiRequest(url: $url, method: $method, options: $options, cache_ttl: $cache_ttl);
+    return new Guild($this);
   }
-
-  public function getGuildChannels(array $options = [], ?int $cache_ttl = null)
-  {
-    $url = self::URL . '/guilds/' . $this->config['guild']['id'] . '/channels';
-    $method = "GET";
-    return $this->apiRequest(url: $url, method: $method, options: $options, cache_ttl: $cache_ttl);
-  }
-
-  // Дополнительные методы для работы с Discord API
 }
