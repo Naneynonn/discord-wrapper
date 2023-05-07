@@ -10,12 +10,6 @@
       "Naneynonn\\": "src/"
     }
   },
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/Naneynonn/discord-wrapper"
-    }
-  ],
   "license": "MIT",
   "authors": [
     {
