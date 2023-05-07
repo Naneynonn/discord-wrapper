@@ -10,8 +10,8 @@ class DiscordApiClient
 {
   private const VERSION = 'v10';
   private const API_URL = 'https://discord.com/api/';
-  private const URL = self::API_URL . self::VERSION . '/';
-  private const NAME = 'CacheBotPHP';
+  private const URL = self::API_URL . self::VERSION;
+  private const NAME = 'wrapper';
 
   private array $config;
   private ?CurlHandle $ch = null;
@@ -98,14 +98,14 @@ class DiscordApiClient
 
   public function getGuild(array $options = [], ?int $cache_ttl = null)
   {
-    $url = 'https://discord.com/api/guilds/' . $this->config['guild']['id'];
+    $url = self::URL . '/guilds/' . $this->config['guild']['id'];
     $method = "GET";
     return $this->apiRequest(url: $url, method: $method, options: $options, cache_ttl: $cache_ttl);
   }
 
   public function getGuildChannels(array $options = [], ?int $cache_ttl = null)
   {
-    $url = 'https://discord.com/api/guilds/' . $this->config['guild']['id'] . '/channels';
+    $url = self::URL . '/guilds/' . $this->config['guild']['id'] . '/channels';
     $method = "GET";
     return $this->apiRequest(url: $url, method: $method, options: $options, cache_ttl: $cache_ttl);
   }
