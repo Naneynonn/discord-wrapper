@@ -1,4 +1,7 @@
 {
+  "name": "naneynonn/discord-wrapper",
+  "description": "Wrapper for the Discord API",
+  "type": "library",
   "require": {
     "predis/predis": "^2.1"
   },
@@ -6,5 +9,18 @@
     "psr-4": {
       "Naneynonn\\": "src/"
     }
-  }
+  },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/Naneynonn/discord-wrapper"
+    }
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Dmitry Naneynonn",
+      "email": "support@discord.band"
+    }
+  ]
 }
