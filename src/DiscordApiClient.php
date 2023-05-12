@@ -2,8 +2,6 @@
 
 namespace Naneynonn;
 
-use Naneynonn\Methods\Guild;
-
 use Predis\Client as PredisClient;
 use CurlHandle;
 
@@ -14,6 +12,13 @@ class DiscordApiClient
   private array $config;
   private ?CurlHandle $ch;
   private PredisClient $predisClient;
+
+  private $objects = [];
+  private $properties = [
+    'guild' => 'Guild',
+    'channel' => 'Channel',
+    'user' => 'User'
+  ];
 
   public function __construct($config)
   {
@@ -31,13 +36,11 @@ class DiscordApiClient
     }
   }
 
-  public function apiRequest(string $url, string $method, array $data = [], array $headers = [], array $options = [], ?int $cache_ttl = null)
+  public function apiRequest(string $url, string $method, array $data = [], array $headers = [], array $options = [], ?int $cache_ttl = null, string $type = 'bot')
   {
+    $cache_key = '';
     // Заголовок авторизации по умолчанию
-    $default_headers = [
-      'Content-Type: application/json',
-      'Authorization: Bot ' . $this->config['bot']['token'],
-    ];
+    $default_headers = $this->getHeadersByType($type);
 
     if (empty($headers)) {
       $headers = $default_headers;
@@ -51,6 +54,38 @@ class DiscordApiClient
         return json_decode($cached_response, true);
       }
     }
+
+    $this->prepareRequest($url, $method, $data, $headers, $options);
+    $response = $this->executeRequest();
+
+    return $this->handleResponse(response: $response, cache_key: $cache_key, cache_ttl: $cache_ttl);
+  }
+
+  public function serverId(): string
+  {
+    return $this->config['guild']['id'];
+  }
+
+  private function getHeadersByType(string $type): array
+  {
+    if ($type == 'bot') {
+      return [
+        'Content-Type: application/json',
+        'Authorization: Bot ' . $this->config['bot']['token'],
+      ];
+    } elseif ($type == 'bearer') {
+      return [
+        'Content-Type: application/x-www-form-urlencoded',
+        'Authorization: Bearer ' . $_SESSION['access_token']
+      ];
+    }
+
+    throw new \InvalidArgumentException("Invalid auth type: $type");
+  }
+
+  private function prepareRequest(string $url, string $method, array $data, array $headers, array $options): void
+  {
+    curl_reset($this->ch);
 
     curl_setopt($this->ch, CURLOPT_URL, $url);
     curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, $method);
@@ -69,21 +104,28 @@ class DiscordApiClient
         curl_setopt($this->ch, $option, $value);
       }
     }
+  }
 
+  private function executeRequest(): string
+  {
     $response = curl_exec($this->ch);
 
+    if (curl_errno($this->ch)) {
+      throw new \Exception(curl_error($this->ch));
+    }
+
+    return $response;
+  }
+
+  private function handleResponse(string $response, string $cache_key, ?int $cache_ttl = null): array
+  {
     $http_code = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
 
     if ($http_code == 429) { // Превышен лимит запросов
       $headers = curl_getinfo($this->ch, CURLINFO_HEADER_OUT);
-      $rate_limit_reset = (int)$headers['X-RateLimit-Reset-After'];
+      $rate_limit_reset = (int) $headers['X-RateLimit-Reset-After'];
       sleep($rate_limit_reset);
-      $response = $this->apiRequest($url, $method, $data, $headers, $options, $cache_ttl);
-    }
-
-    if (curl_errno($this->ch)) {
-      $error_msg = curl_error($this->ch);
-      // Обработка ошибок, например, запись в лог-файл
+      return $this->handleResponse(response: $this->executeRequest(), cache_key: $cache_key, cache_ttl: $cache_ttl);
     }
 
     // Если указано время жизни кеша, сохраняем данные в кеше
@@ -94,13 +136,15 @@ class DiscordApiClient
     return json_decode($response, true);
   }
 
-  public function serverId(): string
+  public function __get($name)
   {
-    return $this->config['guild']['id'];
-  }
-
-  public function guild(): Guild
-  {
-    return new Guild($this);
+    if (array_key_exists($name, $this->properties)) {
+      $class_name = "Naneynonn\Methods\\" . $this->properties[$name];
+      if (!isset($this->objects[$name])) {
+        $this->objects[$name] = new $class_name($this);
+      }
+      return $this->objects[$name];
+    }
+    throw new \Exception("Undefined property: $name");
   }
 }

@@ -16,7 +16,7 @@ class DiscordOauth extends Constants
 
   public function urlOauth(string $clientId, string $redirect, string $scope): string
   {
-    return self::API_URL . '/connect/authorize' . http_build_query([
+    return self::API_URL . '/connect/authorize?' . http_build_query([
       'prompt' => 'none',
       'response_type' => 'code',
       'client_id' => $clientId,
@@ -47,12 +47,8 @@ class DiscordOauth extends Constants
   public function getUser(): void
   {
     $url = self::URL . "/users/@me";
-    $headers = [
-      'Content-Type: application/x-www-form-urlencoded',
-      'Authorization: Bearer ' . $_SESSION['access_token']
-    ];
 
-    $response = $this->api->apiRequest(url: $url, method: 'GET', headers: $headers);
+    $response = $this->api->apiRequest(url: $url, method: 'GET', type: 'bearer');
 
     $_SESSION['user'] = $response;
     $_SESSION['username'] = $response['username'];
@@ -64,23 +60,25 @@ class DiscordOauth extends Constants
   public function getGuilds(?int $cache_ttl = null)
   {
     $url = self::URL . "/users/@me/guilds";
-    $headers = [
-      'Content-Type: application/x-www-form-urlencoded',
-      'Authorization: Bearer ' . $_SESSION['access_token']
-    ];
 
-    return $this->api->apiRequest(url: $url, method: 'GET', headers: $headers, cache_ttl: $cache_ttl);
+    return $this->api->apiRequest(url: $url, method: 'GET', type: 'bearer', cache_ttl: $cache_ttl);
   }
 
   public function getGuild(string $id)
   {
     $url = self::URL . "/guilds/{$id}";
-    $headers = [
-      'Content-Type: application/x-www-form-urlencoded',
-      'Authorization: Bearer ' . $_SESSION['access_token']
-    ];
 
-    return $this->api->apiRequest(url: $url, method: 'GET', headers: $headers);
+    return $this->api->apiRequest(url: $url, method: 'GET', type: 'bearer');
+  }
+
+  public function connectToGuild(string $id)
+  {
+    $user = $_SESSION['user_id'];
+    $url = self::URL . "/guilds/{$id}/members/{$user}";
+
+    $data = ['access_token' => $_SESSION['access_token']];
+
+    return $this->api->apiRequest(url: $url, method: 'PUT', data: $data);
   }
 
   public function genState(): string
