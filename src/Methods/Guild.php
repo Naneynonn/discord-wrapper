@@ -15,9 +15,9 @@ class Guild extends Constants
     $this->api = $api;
   }
 
-  public function getGuild(array $options = [], ?int $cache_ttl = null)
+  public function getGuild(string $server_id, array $options = [], ?int $cache_ttl = null)
   {
-    $url = self::URL . '/guilds/' . $this->api->serverId();
+    $url = self::URL . '/guilds/' . $server_id;
     $method = "GET";
     return $this->api->apiRequest(url: $url, method: $method, options: $options, cache_ttl: $cache_ttl);
   }
