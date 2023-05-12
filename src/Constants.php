@@ -4,7 +4,8 @@ namespace Naneynonn;
 
 class Constants
 {
+  public const DISCORD = 'https://discord.com';
   public const VERSION = 'v10';
-  public const API_URL = 'https://discord.com/api/';
-  public const URL = self::API_URL . self::VERSION;
+
+  public const URL = self::DISCORD . '/api/' . self::VERSION;
 }

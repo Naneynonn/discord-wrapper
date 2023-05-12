@@ -16,7 +16,7 @@ class DiscordOauth extends Constants
 
   public function urlOauth(string $clientId, string $redirect, string $scope): string
   {
-    return self::API_URL . '/connect/authorize?' . http_build_query([
+    return self::DISCORD . '/connect/authorize?' . http_build_query([
       'prompt' => 'none',
       'response_type' => 'code',
       'client_id' => $clientId,
@@ -29,7 +29,7 @@ class DiscordOauth extends Constants
   public function init($redirect_url, $client_id, $client_secret): void
   {
     $code = $_GET['code'];
-    $url = 'https://discord.com/api/oauth2/token';
+    $url = self::URL . '/oauth2/token';
     $method = 'POST';
     $data = [
       "client_id" => $client_id,
