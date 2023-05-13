@@ -21,4 +21,18 @@ class Guild extends Constants
     $method = "GET";
     return $this->api->apiRequest(url: $url, method: $method, options: $options, cache_ttl: $cache_ttl);
   }
+
+  public function getGuildChannels(string $server_id, array $options = [], ?int $cache_ttl = null)
+  {
+    $url = self::URL . '/guilds/' . $server_id . '/channels';
+    $method = "GET";
+    return $this->api->apiRequest(url: $url, method: $method, options: $options, cache_ttl: $cache_ttl);
+  }
+
+  public function getGuildRoles(string $server_id, array $options = [], ?int $cache_ttl = null)
+  {
+    $url = self::URL . '/guilds/' . $server_id . '/roles';
+    $method = "GET";
+    return $this->api->apiRequest(url: $url, method: $method, options: $options, cache_ttl: $cache_ttl);
+  }
 }
