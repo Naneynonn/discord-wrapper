@@ -35,4 +35,11 @@ class Guild extends Constants
     $method = "GET";
     return $this->api->apiRequest(url: $url, method: $method, options: $options, cache_ttl: $cache_ttl);
   }
+
+  public function getGuildMember(string $server_id, string $user_id, array $options = [], ?int $cache_ttl = null)
+  {
+    $url = self::URL . '/guilds/' . $server_id . '/members/' . $user_id;
+    $method = "GET";
+    return $this->api->apiRequest(url: $url, method: $method, options: $options, cache_ttl: $cache_ttl);
+  }
 }
