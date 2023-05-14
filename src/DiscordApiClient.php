@@ -122,9 +122,9 @@ class DiscordApiClient
     $http_code = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
 
     if ($http_code == 429) { // Превышен лимит запросов
-      $headers = curl_getinfo($this->ch, CURLINFO_HEADER_OUT);
-      $rate_limit_reset = (int) $headers['X-RateLimit-Reset-After'];
-      sleep($rate_limit_reset);
+      $response = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+      session_write_close();
+      usleep((int) ($response['retry_after'] * 1000));
       return $this->handleResponse(response: $this->executeRequest(), cache_key: $cache_key, cache_ttl: $cache_ttl);
     }
 
