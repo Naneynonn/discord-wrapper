@@ -85,4 +85,12 @@ class DiscordOauth extends Constants
   {
     return bin2hex(openssl_random_pseudo_bytes(12));
   }
+
+  public function isUnauthorized(array $response, string $back_url): void
+  {
+    if (isset($response['code']) && $response['code'] === 0) {
+      header("Location: {$back_url}");
+      die();
+    }
+  }
 }
