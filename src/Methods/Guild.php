@@ -18,28 +18,30 @@ class Guild extends Constants
   public function getGuild(string $server_id, array $options = [], ?int $cache_ttl = null)
   {
     $url = self::URL . '/guilds/' . $server_id;
-    $method = "GET";
-    return $this->api->apiRequest(url: $url, method: $method, options: $options, cache_ttl: $cache_ttl);
+    return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
 
   public function getGuildChannels(string $server_id, array $options = [], ?int $cache_ttl = null)
   {
     $url = self::URL . '/guilds/' . $server_id . '/channels';
-    $method = "GET";
-    return $this->api->apiRequest(url: $url, method: $method, options: $options, cache_ttl: $cache_ttl);
+    return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
 
   public function getGuildRoles(string $server_id, array $options = [], ?int $cache_ttl = null)
   {
     $url = self::URL . '/guilds/' . $server_id . '/roles';
-    $method = "GET";
-    return $this->api->apiRequest(url: $url, method: $method, options: $options, cache_ttl: $cache_ttl);
+    return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
 
   public function getGuildMember(string $server_id, string $user_id, array $options = [], ?int $cache_ttl = null)
   {
     $url = self::URL . '/guilds/' . $server_id . '/members/' . $user_id;
-    $method = "GET";
-    return $this->api->apiRequest(url: $url, method: $method, options: $options, cache_ttl: $cache_ttl);
+    return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
+  }
+
+  public function getGuildInvites(string $server_id, array $options = [], ?int $cache_ttl = null)
+  {
+    $url = self::URL . '/guilds/' . $server_id . '/invites';
+    return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
 }
