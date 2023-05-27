@@ -5,7 +5,7 @@ namespace Naneynonn\Methods;
 use Naneynonn\DiscordApiClient;
 use Naneynonn\Constants;
 
-class Guild extends Constants
+final class Guild extends Constants
 {
 
   private DiscordApiClient $api;
