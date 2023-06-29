@@ -36,7 +36,7 @@ class DiscordApiClient
     }
   }
 
-  public function apiRequest(string $url, string $method, array $data = [], array $headers = [], array $options = [], ?int $cache_ttl = null, string $type = 'bot')
+  public function apiRequest(string $url, string $method, array $data = [], array $headers = [], array $options = [], ?int $cache_ttl = null, string $type = 'bot', bool $json = false, ?string $key = null)
   {
     $cache_key = '';
     // Заголовок авторизации по умолчанию
@@ -48,14 +48,19 @@ class DiscordApiClient
 
     // Если указано время жизни кеша, попробуйте получить данные из кеша
     if ($cache_ttl) {
-      $cache_key = self::NAME . ':' . md5($url . serialize($data));
+      if (!is_null($key)) {
+        $cache_key = self::NAME . ':' . md5($key);
+      } else {
+        $cache_key = self::NAME . ':' . md5($url . serialize($data));
+      }
+
       $cached_response = $this->predisClient->get($cache_key);
       if ($cached_response) {
         return json_decode($cached_response, true);
       }
     }
 
-    $this->prepareRequest($url, $method, $data, $headers, $options);
+    $this->prepareRequest($url, $method, $data, $headers, $options, $json);
     $response = $this->executeRequest();
 
     return $this->handleResponse(response: $response, cache_key: $cache_key, cache_ttl: $cache_ttl);
@@ -83,7 +88,7 @@ class DiscordApiClient
     throw new \InvalidArgumentException("Invalid auth type: $type");
   }
 
-  private function prepareRequest(string $url, string $method, array $data, array $headers, array $options): void
+  private function prepareRequest(string $url, string $method, array $data, array $headers, array $options, bool $json): void
   {
     curl_reset($this->ch);
 
@@ -95,7 +100,11 @@ class DiscordApiClient
     curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 1);
 
     if (!empty($data)) {
-      curl_setopt($this->ch, CURLOPT_POSTFIELDS, http_build_query($data));
+      if ($json) {
+        curl_setopt($this->ch, CURLOPT_POSTFIELDS, json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+      } else {
+        curl_setopt($this->ch, CURLOPT_POSTFIELDS, http_build_query($data));
+      }
     }
 
     // Применяем пользовательские опции
@@ -117,7 +126,7 @@ class DiscordApiClient
     return $response;
   }
 
-  private function handleResponse(string $response, string $cache_key, ?int $cache_ttl = null): array
+  private function handleResponse(string $response, string $cache_key, ?int $cache_ttl = null): ?array
   {
     $http_code = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
 

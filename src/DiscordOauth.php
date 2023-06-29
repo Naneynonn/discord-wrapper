@@ -16,7 +16,7 @@ class DiscordOauth extends Constants
 
   public function urlOauth(string $clientId, string $redirect, string $scope): string
   {
-    return self::DISCORD . '/connect/authorize?' . http_build_query([
+    return self::DISCORD . '/oauth2/authorize?' . http_build_query([
       'prompt' => 'none',
       'response_type' => 'code',
       'client_id' => $clientId,
@@ -60,8 +60,9 @@ class DiscordOauth extends Constants
   public function getGuilds(?int $cache_ttl = null)
   {
     $url = self::URL . "/users/@me/guilds";
+    $key = $_SESSION['access_token'] . ':guilds';
 
-    return $this->api->apiRequest(url: $url, method: 'GET', type: 'bearer', cache_ttl: $cache_ttl);
+    return $this->api->apiRequest(url: $url, method: 'GET', type: 'bearer', cache_ttl: $cache_ttl, key: $key);
   }
 
   public function getGuild(string $id)
@@ -78,7 +79,7 @@ class DiscordOauth extends Constants
 
     $data = ['access_token' => $_SESSION['access_token']];
 
-    return $this->api->apiRequest(url: $url, method: 'PUT', data: $data);
+    return $this->api->apiRequest(url: $url, method: 'PUT', data: $data, json: true);
   }
 
   public function genState(): string
