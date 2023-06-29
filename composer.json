@@ -16,5 +16,8 @@
       "name": "Dmitry Naneynonn",
       "email": "support@discord.band"
     }
-  ]
+  ],
+  "require-dev": {
+    "rector/rector": "^0.16.0"
+  }
 }
