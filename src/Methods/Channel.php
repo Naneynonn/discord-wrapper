@@ -18,7 +18,12 @@ final class Channel extends Constants
   public function getChannel(string $channel_id, array $options = [], ?int $cache_ttl = null)
   {
     $url = self::URL . '/channels/' . $channel_id;
-    $method = "GET";
-    return $this->api->apiRequest(url: $url, method: $method, options: $options, cache_ttl: $cache_ttl);
+    return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
+  }
+
+  public function getChannelMessage(string $channel_id, string $message_id, array $options = [], ?int $cache_ttl = null)
+  {
+    $url = self::URL . '/channels/' . $channel_id . '/messages/' . $message_id;
+    return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
 }
