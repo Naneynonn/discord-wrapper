@@ -87,8 +87,16 @@ class DiscordOauth extends Constants
     return bin2hex(openssl_random_pseudo_bytes(12));
   }
 
-  public function isUnauthorized(array $response, string $back_url): void
+  /**
+   * @deprecated This method is deprecated and will be removed in future versions.
+   */
+  public function isUnauthorized(?array $response, string $back_url): void
   {
+    if (is_null($response)) {
+      header("Location: {$back_url}");
+      die();
+    }
+
     if (isset($response['code']) && $response['code'] === 0) {
       header("Location: {$back_url}");
       die();
