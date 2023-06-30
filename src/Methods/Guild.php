@@ -39,9 +39,9 @@ final class Guild extends Constants
     return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
 
-  public function getGuildInvites(string $server_id, array $options = [], ?int $cache_ttl = null)
+  public function getGuildInvites(string $server_id, array $options = [], ?int $cache_ttl = null, bool $with_counts = false)
   {
-    $url = self::URL . '/guilds/' . $server_id . '/invites';
+    $url = self::URL . '/guilds/' . $server_id . '/invites?with_counts=' . $with_counts;
     return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
 }
