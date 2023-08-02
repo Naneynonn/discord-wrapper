@@ -44,4 +44,10 @@ final class Guild extends Constants
     $url = self::URL . '/guilds/' . $server_id . '/invites?with_counts=' . $with_counts;
     return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
+
+  public function listActiveGuildThreads(string $guild_id, array $options = [], ?int $cache_ttl = null)
+  {
+    $url = self::URL . '/guilds/' . $guild_id . '/threads/active';
+    return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
+  }
 }
