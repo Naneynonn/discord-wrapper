@@ -5,7 +5,9 @@ namespace Naneynonn;
 use Predis\Client as PredisClient;
 use CurlHandle;
 
-class DiscordApiClient
+use Naneynonn\Constants;
+
+class DiscordApiClient extends Constants
 {
   private const NAME = 'wrapper';
 
@@ -36,7 +38,7 @@ class DiscordApiClient
     }
   }
 
-  public function apiRequest(string $url, string $method, array $data = [], array $headers = [], array $options = [], ?int $cache_ttl = null, string $type = 'bot', bool $json = false, ?string $key = null)
+  public function apiRequest(string $url, string $method, array $data = [], array $headers = [], array $options = [], ?int $cache_ttl = null, string $type = 'bot', bool $json = false, ?string $key = null): object
   {
     $cache_key = '';
     // Заголовок авторизации по умолчанию
@@ -56,7 +58,7 @@ class DiscordApiClient
 
       $cached_response = $this->predisClient->get($cache_key);
       if ($cached_response) {
-        return json_decode($cached_response, true);
+        return json_decode($cached_response);
       }
     }
 
@@ -126,7 +128,7 @@ class DiscordApiClient
     return $response;
   }
 
-  private function handleResponse(string $response, string $cache_key, ?int $cache_ttl = null): ?array
+  private function handleResponse(string $response, string $cache_key, ?int $cache_ttl = null): ?object
   {
     $http_code = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
 
@@ -142,7 +144,21 @@ class DiscordApiClient
       $this->predisClient->set($cache_key, $response, 'EX', $cache_ttl);
     }
 
-    return json_decode($response, true);
+    return json_decode($response);
+  }
+
+  private function generateUrl(string $endpoint, array $params): string
+  {
+    foreach ($params as $key => $value) {
+      $endpoint = str_replace("{{$key}}", $value, $endpoint);
+    }
+    return self::URL . $endpoint;
+  }
+
+  public function request(string $method, string $endpoint, array $params = [], array $options = [], ?int $cache_ttl = null): object
+  {
+    $url = $this->generateUrl($endpoint, $params);
+    return $this->apiRequest(url: $url, method: $method, options: $options, cache_ttl: $cache_ttl);
   }
 
   public function __get($name)
