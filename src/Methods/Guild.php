@@ -15,37 +15,37 @@ final class Guild extends Constants
     $this->api = $api;
   }
 
-  public function getGuild(string $server_id, array $options = [], ?int $cache_ttl = null): object
+  public function getGuild(string $server_id, array $options = [], ?int $cache_ttl = null)
   {
     $url = self::URL . '/guilds/' . $server_id;
     return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
 
-  public function getGuildChannels(string $server_id, array $options = [], ?int $cache_ttl = null): object
+  public function getGuildChannels(string $server_id, array $options = [], ?int $cache_ttl = null)
   {
     $url = self::URL . '/guilds/' . $server_id . '/channels';
     return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
 
-  public function getGuildRoles(string $server_id, array $options = [], ?int $cache_ttl = null): object
+  public function getGuildRoles(string $server_id, array $options = [], ?int $cache_ttl = null)
   {
     $url = self::URL . '/guilds/' . $server_id . '/roles';
     return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
 
-  public function getGuildMember(string $server_id, string $user_id, array $options = [], ?int $cache_ttl = null): object
+  public function getGuildMember(string $server_id, string $user_id, array $options = [], ?int $cache_ttl = null)
   {
     $url = self::URL . '/guilds/' . $server_id . '/members/' . $user_id;
     return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
 
-  public function getGuildInvites(string $server_id, array $options = [], ?int $cache_ttl = null, bool $with_counts = false): object
+  public function getGuildInvites(string $server_id, array $options = [], ?int $cache_ttl = null, bool $with_counts = false)
   {
     $url = self::URL . '/guilds/' . $server_id . '/invites?with_counts=' . $with_counts;
     return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
 
-  public function listActiveGuildThreads(string $guild_id, array $options = [], ?int $cache_ttl = null): object
+  public function listActiveGuildThreads(string $guild_id, array $options = [], ?int $cache_ttl = null)
   {
     $url = self::URL . '/guilds/' . $guild_id . '/threads/active';
     return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);

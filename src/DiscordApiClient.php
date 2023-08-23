@@ -38,7 +38,7 @@ class DiscordApiClient extends Constants
     }
   }
 
-  public function apiRequest(string $url, string $method, array $data = [], array $headers = [], array $options = [], ?int $cache_ttl = null, string $type = 'bot', bool $json = false, ?string $key = null): object
+  public function apiRequest(string $url, string $method, array $data = [], array $headers = [], array $options = [], ?int $cache_ttl = null, string $type = 'bot', bool $json = false, ?string $key = null)
   {
     $cache_key = '';
     // Заголовок авторизации по умолчанию
@@ -58,7 +58,7 @@ class DiscordApiClient extends Constants
 
       $cached_response = $this->predisClient->get($cache_key);
       if ($cached_response) {
-        return json_decode($cached_response);
+        return json_decode($cached_response, true);
       }
     }
 
@@ -128,7 +128,7 @@ class DiscordApiClient extends Constants
     return $response;
   }
 
-  private function handleResponse(string $response, string $cache_key, ?int $cache_ttl = null): ?object
+  private function handleResponse(string $response, string $cache_key, ?int $cache_ttl = null): ?array
   {
     $http_code = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
 
@@ -144,7 +144,7 @@ class DiscordApiClient extends Constants
       $this->predisClient->set($cache_key, $response, 'EX', $cache_ttl);
     }
 
-    return json_decode($response);
+    return json_decode($response, true);
   }
 
   private function generateUrl(string $endpoint, array $params): string
@@ -155,7 +155,7 @@ class DiscordApiClient extends Constants
     return self::URL . $endpoint;
   }
 
-  public function request(string $method, string $endpoint, array $params = [], array $options = [], ?int $cache_ttl = null): object
+  public function request(string $method, string $endpoint, array $params = [], array $options = [], ?int $cache_ttl = null)
   {
     $url = $this->generateUrl($endpoint, $params);
     return $this->apiRequest(url: $url, method: $method, options: $options, cache_ttl: $cache_ttl);
