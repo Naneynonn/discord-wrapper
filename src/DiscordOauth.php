@@ -57,7 +57,7 @@ class DiscordOauth extends Constants
     $_SESSION['user_avatar'] = $response['avatar'];
   }
 
-  public function getGuilds(?int $cache_ttl = null)
+  public function getGuilds(?int $cache_ttl = null): object
   {
     $url = self::URL . "/users/@me/guilds";
     $key = $_SESSION['access_token'] . ':guilds';
@@ -65,14 +65,14 @@ class DiscordOauth extends Constants
     return $this->api->apiRequest(url: $url, method: 'GET', type: 'bearer', cache_ttl: $cache_ttl, key: $key);
   }
 
-  public function getGuild(string $id)
+  public function getGuild(string $id): object
   {
     $url = self::URL . "/guilds/{$id}";
 
     return $this->api->apiRequest(url: $url, method: 'GET', type: 'bearer');
   }
 
-  public function connectToGuild(string $id)
+  public function connectToGuild(string $id): object
   {
     $user = $_SESSION['user_id'];
     $url = self::URL . "/guilds/{$id}/members/{$user}";
