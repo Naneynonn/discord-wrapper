@@ -19,7 +19,8 @@ class DiscordApiClient extends Constants
   private $properties = [
     'guild' => 'Guild',
     'channel' => 'Channel',
-    'user' => 'User'
+    'user' => 'User',
+    'invite' => 'Invite'
   ];
 
   public function __construct($config)
