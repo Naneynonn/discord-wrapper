@@ -3,10 +3,11 @@
 namespace Naneynonn\Methods;
 
 use Naneynonn\DiscordApiClient;
-use Naneynonn\Constants;
+use Naneynonn\Const\Constants;
 
-final class Invite extends Constants
+final class Invite
 {
+  use Constants;
 
   private DiscordApiClient $api;
 

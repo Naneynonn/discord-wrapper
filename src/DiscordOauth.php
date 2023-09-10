@@ -3,10 +3,12 @@
 namespace Naneynonn;
 
 use Naneynonn\DiscordApiClient;
-use Naneynonn\Constants;
+use Naneynonn\Const\Constants;
 
-class DiscordOauth extends Constants
+class DiscordOauth
 {
+  use Constants;
+
   private DiscordApiClient $api;
 
   public function __construct(DiscordApiClient $api)
@@ -84,7 +86,7 @@ class DiscordOauth extends Constants
 
   public function genState(): string
   {
-    return bin2hex(openssl_random_pseudo_bytes(12));
+    return bin2hex(random_bytes(12));
   }
 
   /**

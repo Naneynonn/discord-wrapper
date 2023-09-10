@@ -2,18 +2,18 @@
 
 namespace Naneynonn;
 
-use Predis\Client as PredisClient;
 use CurlHandle;
 
-use Naneynonn\Constants;
+use Naneynonn\Const\Constants;
+use Naneynonn\CacheManager;
 
-class DiscordApiClient extends Constants
+class DiscordApiClient
 {
-  private const NAME = 'wrapper';
+  use Constants;
 
   private array $config;
   private ?CurlHandle $ch;
-  private PredisClient $predisClient;
+  private CacheManager $cacheManager;
 
   private $objects = [];
   private $properties = [
@@ -23,10 +23,12 @@ class DiscordApiClient extends Constants
     'invite' => 'Invite'
   ];
 
-  public function __construct($config)
+  public function __construct(array $config)
   {
+    $this->validateConfig($config);
+
     $this->config = $config;
-    $this->predisClient = new PredisClient();
+    $this->cacheManager = new CacheManager();
 
     $this->ch = curl_init();
   }
@@ -39,6 +41,15 @@ class DiscordApiClient extends Constants
     }
   }
 
+  private function validateConfig(array $config): void
+  {
+    if (!isset($config['bot']['token'])) {
+      throw new \InvalidArgumentException('Bot token must be provided in the configuration.');
+    }
+
+    // Можно добавить дополнительные проверки здесь, если они появятся в будущем
+  }
+
   public function apiRequest(string $url, string $method, array $data = [], array $headers = [], array $options = [], ?int $cache_ttl = null, string $type = 'bot', bool $json = false, ?string $key = null)
   {
     $cache_key = '';
@@ -49,15 +60,10 @@ class DiscordApiClient extends Constants
       $headers = $default_headers;
     }
 
-    // Если указано время жизни кеша, попробуйте получить данные из кеша
-    if ($cache_ttl) {
-      if (!is_null($key)) {
-        $cache_key = self::NAME . ':' . md5($key);
-      } else {
-        $cache_key = self::NAME . ':' . md5($url . serialize($data));
-      }
+    $cache_key = $this->cacheManager->generateKey(url: $url, data: $data, customKey: $key);
 
-      $cached_response = $this->predisClient->get($cache_key);
+    if ($cache_ttl) {
+      $cached_response = $this->cacheManager->get(key: $cache_key);
       if ($cached_response) {
         return json_decode($cached_response, true);
       }
@@ -67,28 +73,6 @@ class DiscordApiClient extends Constants
     $response = $this->executeRequest();
 
     return $this->handleResponse(response: $response, cache_key: $cache_key, cache_ttl: $cache_ttl);
-  }
-
-  public function serverId(): string
-  {
-    return $this->config['guild']['id'];
-  }
-
-  private function getHeadersByType(string $type): array
-  {
-    if ($type == 'bot') {
-      return [
-        'Content-Type: application/json',
-        'Authorization: Bot ' . $this->config['bot']['token'],
-      ];
-    } elseif ($type == 'bearer') {
-      return [
-        'Content-Type: application/x-www-form-urlencoded',
-        'Authorization: Bearer ' . $_SESSION['access_token']
-      ];
-    }
-
-    throw new \InvalidArgumentException("Invalid auth type: $type");
   }
 
   private function prepareRequest(string $url, string $method, array $data, array $headers, array $options, bool $json): void
@@ -101,6 +85,7 @@ class DiscordApiClient extends Constants
     curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, 2);
     curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 1);
+    curl_setopt($this->ch, CURLOPT_USERAGENT, 'Discord-Wrapper/1.0');
 
     if (!empty($data)) {
       if ($json) {
@@ -142,10 +127,25 @@ class DiscordApiClient extends Constants
 
     // Если указано время жизни кеша, сохраняем данные в кеше
     if ($cache_ttl) {
-      $this->predisClient->set($cache_key, $response, 'EX', $cache_ttl);
+      $this->cacheManager->set(key: $cache_key, value: $response, ttl: $cache_ttl);
     }
 
     return json_decode($response, true);
+  }
+
+  private function getHeadersByType(string $type): array
+  {
+    return match ($type) {
+      'bot' => [
+        'Content-Type: application/json',
+        'Authorization: Bot ' . $this->config['bot']['token'],
+      ],
+      'bearer' => [
+        'Content-Type: application/x-www-form-urlencoded',
+        'Authorization: Bearer ' . $_SESSION['access_token']
+      ],
+      default => throw new \InvalidArgumentException("Invalid auth type: {$type}")
+    };
   }
 
   private function generateUrl(string $endpoint, array $params): string
@@ -162,15 +162,29 @@ class DiscordApiClient extends Constants
     return $this->apiRequest(url: $url, method: $method, options: $options, cache_ttl: $cache_ttl);
   }
 
-  public function __get($name)
+  /**
+   * Magic getter for lazily initializing various API method handlers.
+   *
+   * @param string $name The property name.
+   * @return mixed The initialized object for the API method.
+   * @throws \Exception If the property name doesn't match any known handlers.
+   */
+  public function __get(string $name): object
   {
-    if (array_key_exists($name, $this->properties)) {
-      $class_name = "Naneynonn\Methods\\" . $this->properties[$name];
-      if (!isset($this->objects[$name])) {
-        $this->objects[$name] = new $class_name($this);
-      }
-      return $this->objects[$name];
+    if (!isset($this->objects[$name])) {
+      $this->objects[$name] = $this->createApiMethodHandler($name);
     }
-    throw new \Exception("Undefined property: $name");
+
+    return $this->objects[$name];
+  }
+
+  private function createApiMethodHandler(string $name): object
+  {
+    if (!array_key_exists($name, $this->properties)) {
+      throw new \Exception("Undefined property: $name");
+    }
+
+    $class_name = "Naneynonn\Methods\\" . $this->properties[$name];
+    return new $class_name($this);
   }
 }

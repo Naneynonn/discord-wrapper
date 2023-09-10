@@ -3,10 +3,11 @@
 namespace Naneynonn\Methods;
 
 use Naneynonn\DiscordApiClient;
-use Naneynonn\Constants;
+use Naneynonn\Const\Constants;
 
-final class Channel extends Constants
+final class Channel
 {
+  use Constants;
 
   private DiscordApiClient $api;
 

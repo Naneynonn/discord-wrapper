@@ -3,10 +3,11 @@
 namespace Naneynonn\Methods;
 
 use Naneynonn\DiscordApiClient;
-use Naneynonn\Constants;
+use Naneynonn\Const\Constants;
 
-final class Guild extends Constants
+final class Guild
 {
+  use Constants;
 
   private DiscordApiClient $api;
 
@@ -39,9 +40,28 @@ final class Guild extends Constants
     return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
 
-  public function getGuildInvites(string $server_id, array $options = [], ?int $cache_ttl = null, bool $with_counts = false)
+  public function getGuildInvites(string $guild_id, array $options = [], ?int $cache_ttl = null, array $params = [])
   {
-    $url = self::URL . '/guilds/' . $server_id . '/invites?with_counts=' . $with_counts;
+    $url = self::URL . '/guilds/' . $guild_id . '/invites';
+
+    $queryParameters = [];
+
+    if (isset($params['with_counts']) && is_bool($params['with_counts'])) {
+      $queryParameters['with_counts'] = (string) $params['with_counts'];
+    }
+
+    if (isset($params['with_expiration']) && is_bool($params['with_expiration'])) {
+      $queryParameters['with_expiration'] = (string) $params['with_expiration'];
+    }
+
+    if (isset($params['guild_scheduled_event_id'])) {
+      $queryParameters['guild_scheduled_event_id'] = $params['guild_scheduled_event_id'];
+    }
+
+    if (!empty($queryParameters)) {
+      $url .= '?' . http_build_query($queryParameters);
+    }
+
     return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
 

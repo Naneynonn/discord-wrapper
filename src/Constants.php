@@ -1,6 +1,6 @@
 <?php
 
-namespace Naneynonn;
+namespace Naneynonn\Const;
 
 class Constants
 {
