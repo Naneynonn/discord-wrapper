@@ -14,6 +14,7 @@ class DiscordApiClient
   private array $config;
   private ?CurlHandle $ch;
   private CacheManager $cacheManager;
+  private ?array $proxy = null;
 
   private $objects = [];
   private $properties = [
@@ -29,6 +30,10 @@ class DiscordApiClient
 
     $this->config = $config;
     $this->cacheManager = new CacheManager();
+
+    if (isset($config['proxy'])) {
+      $this->proxy = $config['proxy'];
+    }
 
     $this->ch = curl_init();
   }
@@ -47,7 +52,28 @@ class DiscordApiClient
       throw new \InvalidArgumentException('Bot token must be provided in the configuration.');
     }
 
-    // Можно добавить дополнительные проверки здесь, если они появятся в будущем
+    // Проверка конфигурации прокси, если она предоставлена
+    if (isset($config['proxy'])) {
+      $requiredProxyFields = ['address', 'port', 'type'];
+      foreach ($requiredProxyFields as $field) {
+        if (!isset($config['proxy'][$field])) {
+          throw new \InvalidArgumentException("Proxy configuration is missing the required field: {$field}.");
+        }
+      }
+
+      // Проверка допустимости типа прокси
+      $allowedProxyTypes = ['HTTP', 'SOCKS5'];
+      if (!in_array($config['proxy']['type'], $allowedProxyTypes, true)) {
+        throw new \InvalidArgumentException("Proxy type {$config['proxy']['type']} is not supported. Supported types are: " . implode(", ", $allowedProxyTypes));
+      }
+
+      // Если указаны username или password, оба должны быть предоставлены
+      if (isset($config['proxy']['username']) || isset($config['proxy']['password'])) {
+        if (!isset($config['proxy']['username']) || !isset($config['proxy']['password'])) {
+          throw new \InvalidArgumentException("Proxy configuration requires both username and password if one of them is provided.");
+        }
+      }
+    }
   }
 
   public function apiRequest(string $url, string $method, array $data = [], array $headers = [], array $options = [], ?int $cache_ttl = null, string $type = 'bot', bool $json = false, ?string $key = null)
@@ -86,6 +112,19 @@ class DiscordApiClient
     curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, 2);
     curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 1);
     curl_setopt($this->ch, CURLOPT_USERAGENT, 'Discord-Wrapper/1.0');
+
+    if ($this->proxy) {
+      curl_setopt($this->ch, CURLOPT_PROXY, $this->proxy['address']);
+      curl_setopt($this->ch, CURLOPT_PROXYPORT, $this->proxy['port']);
+      curl_setopt($this->ch, CURLOPT_PROXYTYPE, match ($this->proxy['type']) {
+        'SOCKS5' => CURLPROXY_SOCKS5,
+        'HTTP' => CURLPROXY_HTTP,
+        default => throw new \InvalidArgumentException('Invalid proxy type specified.'),
+      });
+      if (isset($this->proxy['username']) && isset($this->proxy['password'])) {
+        curl_setopt($this->ch, CURLOPT_PROXYUSERPWD, "{$this->proxy['username']}:{$this->proxy['password']}");
+      }
+    }
 
     if (!empty($data)) {
       if ($json) {
