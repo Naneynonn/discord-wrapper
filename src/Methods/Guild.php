@@ -96,7 +96,7 @@ final class Guild
       ->setBaseUrl($url)
       ->setDefault(name: 'limit', type: 'integer')
       ->setDefault(name: 'after', type: 'string')
-      ->buildUrl();
+      ->buildUrl($params);
 
     return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }

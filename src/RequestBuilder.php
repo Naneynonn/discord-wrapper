@@ -15,11 +15,10 @@ class RequestBuilder
     return $this;
   }
 
-  public function setDefault(string $name, string $type, mixed $default = null): self
+  public function setDefault(string $name, string $type): self
   {
     $this->params[$name] = [
-      'type' => $type,
-      'default' => $default
+      'type' => $type
     ];
     return $this;
   }
@@ -39,12 +38,6 @@ class RequestBuilder
     return $this;
   }
 
-  public function buildUrl(array $inputParams = []): string
-  {
-    $processedParams = $this->process($inputParams);
-    return $this->baseUrl . '?' . http_build_query($processedParams);
-  }
-
   public function setExternalOptions(array $options): self
   {
     $this->externalOptions = $options;
@@ -56,14 +49,18 @@ class RequestBuilder
     return array_replace($this->externalOptions, $this->options);
   }
 
+  public function buildUrl(array $inputParams = []): string
+  {
+    $processedParams = $this->process($inputParams);
+    return $this->baseUrl . '?' . http_build_query($processedParams);
+  }
+
   private function process(array $inputParams): array
   {
     $result = [];
     foreach ($this->params as $key => $settings) {
       if (isset($inputParams[$key]) && gettype($inputParams[$key]) === $settings['type']) {
         $result[$key] = $inputParams[$key];
-      } elseif (isset($settings['default'])) {
-        $result[$key] = $settings['default'];
       }
     }
     return $result;
