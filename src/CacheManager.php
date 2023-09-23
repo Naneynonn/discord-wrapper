@@ -29,7 +29,7 @@ class CacheManager
     $this->predisClient->del($key);
   }
 
-  public function generateKey(string $url, array $data, ?string $customKey = null): string
+  public function generateKey(string $url, ?array $data, ?string $customKey = null): string
   {
     if ($customKey) {
       return self::NAME . ':' . md5($customKey);
