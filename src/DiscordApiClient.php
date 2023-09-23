@@ -76,14 +76,13 @@ class DiscordApiClient
     }
   }
 
-  public function apiRequest(string $url, string $method, array $data = [], array $headers = [], array $options = [], ?int $cache_ttl = null, string $type = 'bot', bool $json = false, ?string $key = null)
+  public function apiRequest(string $url, string $method, ?array $data = [], array $headers = [], array $options = [], ?int $cache_ttl = null, string $type = 'bot', bool $json = false, ?string $key = null)
   {
     $cache_key = '';
-    // Заголовок авторизации по умолчанию
-    $default_headers = $this->getHeadersByType($type);
 
+    // Заголовок авторизации по умолчанию
     if (empty($headers)) {
-      $headers = $default_headers;
+      $headers = $this->getHeadersByType($type);
     }
 
     $cache_key = $this->cacheManager->generateKey(url: $url, data: $data, customKey: $key);
@@ -101,9 +100,14 @@ class DiscordApiClient
     return $this->handleResponse(response: $response, cache_key: $cache_key, cache_ttl: $cache_ttl);
   }
 
-  private function prepareRequest(string $url, string $method, array $data, array $headers, array $options, bool $json): void
+  private function prepareRequest(string $url, string $method, ?array $data, array $headers, array $options, bool $json): void
   {
     curl_reset($this->ch);
+
+    if (isset($options[CURLOPT_HTTPHEADER])) {
+      $headers = array_merge($headers, $options[CURLOPT_HTTPHEADER]);
+      unset($options[CURLOPT_HTTPHEADER]); // Удаляем, чтобы избежать повторной установки
+    }
 
     curl_setopt($this->ch, CURLOPT_URL, $url);
     curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, $method);
@@ -126,12 +130,13 @@ class DiscordApiClient
       }
     }
 
-    if (!empty($data)) {
-      if ($json) {
-        curl_setopt($this->ch, CURLOPT_POSTFIELDS, json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
-      } else {
-        curl_setopt($this->ch, CURLOPT_POSTFIELDS, http_build_query($data));
-      }
+    if (is_null($data)) {
+      curl_setopt($this->ch, CURLOPT_POSTFIELDS, NULL);
+    } else if (!empty($data)) {
+      curl_setopt($this->ch, CURLOPT_POSTFIELDS, match ($json) {
+        true => json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+        false => http_build_query($data),
+      });
     }
 
     // Применяем пользовательские опции

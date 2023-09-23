@@ -4,6 +4,7 @@ namespace Naneynonn\Methods;
 
 use Naneynonn\DiscordApiClient;
 use Naneynonn\Const\Constants;
+use Naneynonn\RequestBuilder;
 
 final class Invite
 {
@@ -20,23 +21,13 @@ final class Invite
   {
     $url = self::URL . '/invites/' . $code;
 
-    $queryParameters = [];
-
-    if (isset($params['with_counts']) && is_bool($params['with_counts'])) {
-      $queryParameters['with_counts'] = (string) $params['with_counts'];
-    }
-
-    if (isset($params['with_expiration']) && is_bool($params['with_expiration'])) {
-      $queryParameters['with_expiration'] = (string) $params['with_expiration'];
-    }
-
-    if (isset($params['guild_scheduled_event_id'])) {
-      $queryParameters['guild_scheduled_event_id'] = $params['guild_scheduled_event_id'];
-    }
-
-    if (!empty($queryParameters)) {
-      $url .= '?' . http_build_query($queryParameters);
-    }
+    $requestBuilder = new RequestBuilder();
+    $url = $requestBuilder
+      ->setBaseUrl($url)
+      ->setDefault(name: 'with_counts', type: 'bool')
+      ->setDefault(name: 'with_expiration', type: 'bool')
+      ->setDefault(name: 'guild_scheduled_event_id', type: 'string')
+      ->buildUrl();
 
     return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
@@ -45,9 +36,10 @@ final class Invite
   {
     $url = self::URL . '/invites/' . $code;
 
-    if (!empty($reason)) {
-      $options[CURLOPT_HTTPHEADER][] = "X-Audit-Log-Reason: {$reason}";
-    }
+    $requestBuilder = new RequestBuilder();
+    $options = $requestBuilder
+      ->withAuditLogReason(reason: $reason)
+      ->getOptions();
 
     return $this->api->apiRequest(url: $url, method: 'DELETE', options: $options, cache_ttl: $cache_ttl);
   }

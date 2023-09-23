@@ -4,6 +4,7 @@ namespace Naneynonn\Methods;
 
 use Naneynonn\DiscordApiClient;
 use Naneynonn\Const\Constants;
+use Naneynonn\RequestBuilder;
 
 final class Guild
 {
@@ -44,23 +45,13 @@ final class Guild
   {
     $url = self::URL . '/guilds/' . $guild_id . '/invites';
 
-    $queryParameters = [];
-
-    if (isset($params['with_counts']) && is_bool($params['with_counts'])) {
-      $queryParameters['with_counts'] = (string) $params['with_counts'];
-    }
-
-    if (isset($params['with_expiration']) && is_bool($params['with_expiration'])) {
-      $queryParameters['with_expiration'] = (string) $params['with_expiration'];
-    }
-
-    if (isset($params['guild_scheduled_event_id'])) {
-      $queryParameters['guild_scheduled_event_id'] = $params['guild_scheduled_event_id'];
-    }
-
-    if (!empty($queryParameters)) {
-      $url .= '?' . http_build_query($queryParameters);
-    }
+    $requestBuilder = new RequestBuilder();
+    $url = $requestBuilder
+      ->setBaseUrl($url)
+      ->setDefault(name: 'with_counts', type: 'bool')
+      ->setDefault(name: 'with_expiration', type: 'bool')
+      ->setDefault(name: 'guild_scheduled_event_id', type: 'string')
+      ->buildUrl();
 
     return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
@@ -68,6 +59,45 @@ final class Guild
   public function listActiveGuildThreads(string $guild_id, array $options = [], ?int $cache_ttl = null)
   {
     $url = self::URL . '/guilds/' . $guild_id . '/threads/active';
+    return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
+  }
+
+  public function addGuildMemberRole(string $guild_id, string $user_id, string $role_id, ?string $reason = null, array $options = [], ?int $cache_ttl = null)
+  {
+    $url = self::URL . '/guilds/' . $guild_id . '/members/' . $user_id  . '/roles/' . $role_id;
+
+    $requestBuilder = new RequestBuilder();
+    $options = $requestBuilder
+      ->withAuditLogReason(reason: $reason)
+      ->getOptions();
+
+    return $this->api->apiRequest(url: $url, method: 'PUT', options: $options, cache_ttl: $cache_ttl, data: NULL);
+  }
+
+  public function removeGuildMemberRole(string $guild_id, string $user_id, string $role_id, ?string $reason = null, array $options = [], ?int $cache_ttl = null)
+  {
+    $url = self::URL . '/guilds/' . $guild_id . '/members/' . $user_id  . '/roles/' . $role_id;
+
+    $requestBuilder = new RequestBuilder();
+    $options = $requestBuilder
+      ->withAuditLogReason(reason: $reason)
+      ->setExternalOptions(options: $options)
+      ->getOptions();
+
+    return $this->api->apiRequest(url: $url, method: 'DELETE', options: $options, cache_ttl: $cache_ttl);
+  }
+
+  public function listGuildMembers(string $guild_id, array $options = [], ?int $cache_ttl = null, array $params = [])
+  {
+    $url = self::URL . '/guilds/' . $guild_id . '/members';
+
+    $requestBuilder = new RequestBuilder();
+    $url = $requestBuilder
+      ->setBaseUrl($url)
+      ->setDefault(name: 'limit', type: 'integer')
+      ->setDefault(name: 'after', type: 'string')
+      ->buildUrl();
+
     return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
 }
