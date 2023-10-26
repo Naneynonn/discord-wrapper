@@ -27,7 +27,7 @@ final class Invite
       ->setDefault(name: 'with_counts', type: 'bool')
       ->setDefault(name: 'with_expiration', type: 'bool')
       ->setDefault(name: 'guild_scheduled_event_id', type: 'string')
-      ->buildUrl();
+      ->buildUrl($params);
 
     return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }

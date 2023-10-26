@@ -48,10 +48,10 @@ final class Guild
     $requestBuilder = new RequestBuilder();
     $url = $requestBuilder
       ->setBaseUrl($url)
-      ->setDefault(name: 'with_counts', type: 'bool')
-      ->setDefault(name: 'with_expiration', type: 'bool')
+      ->setDefault(name: 'with_counts', type: 'boolean')
+      ->setDefault(name: 'with_expiration', type: 'boolean')
       ->setDefault(name: 'guild_scheduled_event_id', type: 'string')
-      ->buildUrl();
+      ->buildUrl($params);
 
     return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
