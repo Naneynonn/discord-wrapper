@@ -21,7 +21,8 @@ class DiscordApiClient
     'guild' => 'Guild',
     'channel' => 'Channel',
     'user' => 'User',
-    'invite' => 'Invite'
+    'invite' => 'Invite',
+    'webhook' => 'Webhook'
   ];
 
   public function __construct(array $config)
