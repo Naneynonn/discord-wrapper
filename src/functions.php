@@ -14,3 +14,11 @@ function isUnauthorized(?array $response, string $back_url): void
     die();
   }
 }
+
+function getDecodeImage(string $url): string
+{
+  $path = $url;
+  $type = pathinfo($path, PATHINFO_EXTENSION);
+  $data = file_get_contents($path);
+  return 'data:image/' . $type . ';base64,' . base64_encode($data);
+}
