@@ -55,6 +55,11 @@ class RequestBuilder
     return $this->baseUrl . '?' . http_build_query($processedParams);
   }
 
+  public function validateArray(array $inputParams = []): ?array
+  {
+    return $this->process($inputParams);
+  }
+
   private function process(array $inputParams): array
   {
     $result = [];
