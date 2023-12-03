@@ -17,9 +17,16 @@ final class Guild
     $this->api = $api;
   }
 
-  public function getGuild(string $server_id, array $options = [], ?int $cache_ttl = null)
+  public function getGuild(string $server_id, array $options = [], ?int $cache_ttl = null, array $params = [])
   {
     $url = self::URL . '/guilds/' . $server_id;
+
+    $requestBuilder = new RequestBuilder();
+    $url = $requestBuilder
+      ->setBaseUrl($url)
+      ->setDefault(name: 'with_counts', type: 'boolean')
+      ->buildUrl($params);
+
     return $this->api->apiRequest(url: $url, method: 'GET', options: $options, cache_ttl: $cache_ttl);
   }
 
