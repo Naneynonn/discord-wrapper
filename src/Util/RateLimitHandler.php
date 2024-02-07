@@ -20,7 +20,7 @@ class RateLimitHandler
     }
 
     $retryAfter = $response->hasHeader('Retry-After') ? (int) $response->getHeaderLine('Retry-After') : 0;
-    usleep($retryAfter * 1000);
+    usleep($retryAfter * 1000000);
 
     return $retryRequest();
   }
