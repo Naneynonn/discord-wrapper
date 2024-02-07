@@ -66,8 +66,8 @@ final class OAuth
 
   public function getGuilds(?int $cache_ttl = 600): array
   {
-    // $key = $_SESSION['access_token'] . ':guilds';
-    return $this->api->apiRequest(method: 'GET', url: 'users/@me/guilds', authType: 'bearer', cache_ttl: $cache_ttl);
+    $key = $_SESSION['access_token'] . ':guilds';
+    return $this->api->apiRequest(method: 'GET', url: 'users/@me/guilds', authType: 'bearer', customKey: $key, cache_ttl: $cache_ttl);
   }
 
   public function getGuild(string $id): array
