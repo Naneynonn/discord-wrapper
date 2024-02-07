@@ -29,7 +29,7 @@ $config = [
     'token' => '',
   ],
 
-  // If true, it will wait for the right limit to be exited and the code will be executed again
+  // If this is true, it will wait until the rate limit is reached and the code will be executed again. False will throw an error and stop.
   'retry' => true
 
   // If you need proxies
