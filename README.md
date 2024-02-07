@@ -1,10 +1,11 @@
 # discord-wrapper
 
 Example:
+
 ```
 require 'vendor/autoload.php';
 
-use Naneynonn\DiscordApiClient;
+use Naneynonn\Api\Client as DiscordApiClient;
 
 $config = [
   'bot' => [
@@ -12,11 +13,9 @@ $config = [
   ]
 ];
 
-$options = [CURLOPT_FORBID_REUSE => false];
-$cache_ttl = 300;
-
 $api = new DiscordApiClient($config);
-$guild = $api->guild->getGuild(server_id: '');
+
+$guild = $api->guild->getGuild(guild_id: '');
 // or
-$guild = $api->request(method: 'GET', endpoint: '/guilds/{guild.id}', params: ['guild.id' => ''], options: $options, cache_ttl: $cache_ttl);
+$guild = $api->request(method: 'GET', endpoint: '/guilds/{guild.id}', options: ['params' => ['guild.id' => '']], cache_ttl: $cache_ttl);
 ```
