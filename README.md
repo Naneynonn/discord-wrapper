@@ -70,5 +70,7 @@ $api->request(
   ]
 
   // If you don't want to use the cache, set it to Null
-  cache_ttl: 600);
+  // ... in seconds
+  cache_ttl: 600
+);
 ```
