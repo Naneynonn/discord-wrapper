@@ -59,8 +59,14 @@ final class CacheManager
     $responseBody = $requestFunction();
 
     if (!empty($responseBody)) {
-      $this->set($key, $responseBody, $ttl);
-      return json_decode($responseBody, true, 512, JSON_THROW_ON_ERROR);
+      $decodedBody = json_decode($responseBody, true, 512, JSON_THROW_ON_ERROR);
+
+      // Проверяем, не содержит ли ответ информацию о превышении лимита запросов
+      if (empty($decodedBody['retry_after'])) {
+        $this->set($key, $responseBody, $ttl);
+      }
+
+      return $decodedBody;
     }
 
     return [];
