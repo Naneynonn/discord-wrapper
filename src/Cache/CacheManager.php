@@ -13,7 +13,7 @@ final class CacheManager
 
   public function __construct()
   {
-    $this->predisClient = new PredisClient();
+    $this->predisClient = new PredisClient(options: ['prefix' => self::NAME . ':']);
   }
 
   public function get(string $key): ?string
@@ -34,9 +34,9 @@ final class CacheManager
   public function generateKey(string $url, ?array $data, ?string $customKey = null): string
   {
     if ($customKey) {
-      return self::NAME . ':' . md5($customKey);
+      return md5($customKey);
     }
-    return self::NAME . ':' . md5($url . serialize($data));
+    return md5($url . serialize($data));
   }
 
   public function requestWithCache(string $key, callable $requestFunction, ?int $ttl = null): array
