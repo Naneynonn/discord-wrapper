@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Naneynonn\Api;
 
+use Discord\Http\Request;
 use Naneynonn\Util\RateLimitHandler;
 use Naneynonn\Util\ConfigValidator;
 use Naneynonn\Util\HttpUtils;
-use Naneynonn\Cache\CacheManager;
 
+use Naneynonn\Cache\CacheManager;
 use Naneynonn\Const\Config;
+use Naneynonn\Enums\RequestTypes;
 
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\GuzzleException;
@@ -57,7 +59,7 @@ final class Client extends HttpUtils
     ]);
   }
 
-  public function apiRequest(string $method, string $url, array $options = [], string $authType = 'bot', ?string $customKey = null, ?int $cache_ttl = null): array
+  public function apiRequest(RequestTypes $method, string $url, array $options = [], string $authType = 'bot', ?string $customKey = null, ?int $cache_ttl = null): array
   {
     $defaultHeaders = $this->getHeadersByType($authType);
 
@@ -71,7 +73,7 @@ final class Client extends HttpUtils
       $key = $this->cache->generateKey(url: $url, data: $options, customKey: $customKey);
 
       $bodyFunction = function () use ($method, $url, $options) {
-        $request = fn () => $this->http->request(method: $method, uri: $url, options: $options);
+        $request = fn () => $this->http->request(method: $method->value, uri: $url, options: $options);
 
         $response = $request();
         $response = RateLimitHandler::handle(response: $response, retryRequest: $request, retry: $this->retry);
@@ -89,7 +91,7 @@ final class Client extends HttpUtils
   public function __get($name)
   {
     $serviceName = ucfirst(strtolower($name));
-    $className = "Naneynonn\\Rest\\{$serviceName}";
+    $className = "\\Naneynonn\\Rest\\{$serviceName}";
 
     if (!isset($this->services[$name])) {
       if (class_exists($className)) {
@@ -123,7 +125,7 @@ final class Client extends HttpUtils
     };
   }
 
-  public function request(string $method, string $endpoint, array $options = [], ?int $cache_ttl = null): array
+  public function request(RequestTypes $method, string $endpoint, array $options = [], ?int $cache_ttl = null): array
   {
     $url = $endpoint;
 
@@ -132,12 +134,8 @@ final class Client extends HttpUtils
     }
 
     if (!empty($options['reason'])) {
-      $auditLogHeader = self::withAuditLogReason(reason: $options['reason']);
-      $options['headers'] = isset($options['headers']) ? array_merge($options['headers'], $auditLogHeader) : $auditLogHeader;
-    }
-
-    if (!empty($options['reason'])) {
-      $options['headers'][] = self::withAuditLogReason(reason: $options['reason']);
+      $auditLogHeader = self::withAuditLogReason($options['reason']);
+      $options['headers'] = array_merge($options['headers'] ?? [], $auditLogHeader);
     }
 
     unset($options['params'], $options['reason']);

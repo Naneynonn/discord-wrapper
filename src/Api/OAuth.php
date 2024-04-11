@@ -6,6 +6,7 @@ namespace Naneynonn\Api;
 
 use Naneynonn\Const\Config;
 use Naneynonn\Api\Client;
+use Naneynonn\Enums\RequestTypes;
 
 final class OAuth
 {
@@ -49,13 +50,13 @@ final class OAuth
       ]
     ];
 
-    $response = $this->api->apiRequest(method: 'POST', url: 'oauth2/token', options: $options);
+    $response = $this->api->apiRequest(method: RequestTypes::POST, url: 'oauth2/token', options: $options);
     $_SESSION['access_token'] = $response['access_token'] ?? '';
   }
 
   public function getUser(): void
   {
-    $response = $this->api->apiRequest(method: 'GET', url: 'users/@me', authType: 'bearer');
+    $response = $this->api->apiRequest(method: RequestTypes::GET, url: 'users/@me', authType: 'bearer');
 
     $_SESSION['user'] = $response;
     $_SESSION['username'] = $response['username'];
@@ -67,12 +68,12 @@ final class OAuth
   public function getGuilds(?int $cache_ttl = 600): array
   {
     $key = $_SESSION['access_token'] . ':guilds';
-    return $this->api->apiRequest(method: 'GET', url: 'users/@me/guilds', authType: 'bearer', customKey: $key, cache_ttl: $cache_ttl);
+    return $this->api->apiRequest(method: RequestTypes::GET, url: 'users/@me/guilds', authType: 'bearer', customKey: $key, cache_ttl: $cache_ttl);
   }
 
   public function getGuild(string $id): array
   {
-    return $this->api->apiRequest(method: 'GET', url: "guilds/{$id}", authType: 'bearer');
+    return $this->api->apiRequest(method: RequestTypes::GET, url: "guilds/{$id}", authType: 'bearer');
   }
 
   public function connectToGuild(string $id): array
@@ -85,7 +86,7 @@ final class OAuth
       ]
     ];
 
-    return $this->api->apiRequest(method: 'PUT', url: "guilds/{$id}/members/{$user}", options: $options);
+    return $this->api->apiRequest(method: RequestTypes::PUT, url: "guilds/{$id}/members/{$user}", options: $options);
   }
 
   public function genState(): string
