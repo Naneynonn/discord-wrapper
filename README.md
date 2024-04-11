@@ -17,7 +17,7 @@ $api = new DiscordApiClient($config);
 
 $guild = $api->guild->getGuild(guild_id: '');
 // or
-$guild = $api->request(method: 'GET', endpoint: '/guilds/{guild.id}', options: ['params' => ['guild.id' => '']], cache_ttl: 600);
+$guild = $api->request(method: RequestTypes::GET, endpoint: '/guilds/{guild.id}', options: ['params' => ['guild.id' => '']], cache_ttl: 600);
 ```
 
 Config:
@@ -47,7 +47,7 @@ Custom api request:
 ```
 $api = new DiscordApiClient($config);
 $api->request(
-  method: 'GET',
+  method: RequestTypes::GET,
   endpoint: '/guilds/{guild.id}',
   options: [
     // API parameters
