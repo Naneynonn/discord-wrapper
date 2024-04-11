@@ -25,7 +25,7 @@ final class Channel
     );
   }
 
-  public function modifyChannel(string $channel_id, array $params = [], string $reason = '', ?int $cache_ttl = null)
+  public function modifyChannel(string $channel_id, array $params = [], string $reason = '', ?int $cache_ttl = null): array
   {
     return $this->api->request(
       method: RequestTypes::PATCH,
@@ -55,7 +55,7 @@ final class Channel
     return $this->deleteChannel(channel_id: $channel_id, reason: $reason, cache_ttl: $cache_ttl);
   }
 
-  public function getChannelMessages(string $channel_id, array $params = [], ?int $cache_ttl = 600)
+  public function getChannelMessages(string $channel_id, array $params = [], ?int $cache_ttl = 600): array
   {
     return $this->api->request(
       method: RequestTypes::GET,
@@ -67,7 +67,7 @@ final class Channel
     );
   }
 
-  public function getChannelMessage(string $channel_id, string $message_id, ?int $cache_ttl = 600)
+  public function getChannelMessage(string $channel_id, string $message_id, ?int $cache_ttl = 600): array
   {
     return $this->api->request(
       method: RequestTypes::GET,
@@ -76,7 +76,7 @@ final class Channel
     );
   }
 
-  public function createMessage(string $channel_id, array $params = [], string $reason = '', ?int $cache_ttl = null)
+  public function createMessage(string $channel_id, array $params = [], string $reason = '', ?int $cache_ttl = null): array
   {
     return $this->api->request(
       method: RequestTypes::POST,
@@ -89,7 +89,7 @@ final class Channel
     );
   }
 
-  public function crosspostMessage(string $channel_id, string $message_id, array $params = [], ?int $cache_ttl = null)
+  public function crosspostMessage(string $channel_id, string $message_id, array $params = [], ?int $cache_ttl = null): array
   {
     return $this->api->request(
       method: RequestTypes::POST,
@@ -101,7 +101,46 @@ final class Channel
     );
   }
 
-  public function createChannelInvite(string $channel_id, array $params = [], string $reason = '', ?int $cache_ttl = null)
+  public function createReaction(string $channel_id, string $message_id, string $emoji, ?int $cache_ttl = null): array
+  {
+    return $this->api->request(
+      method: RequestTypes::PUT,
+      endpoint: "channels/{$channel_id}/messages/{$message_id}/reactions/{$emoji}/@me",
+      cache_ttl: $cache_ttl
+    );
+  }
+
+  public function deleteOwnReaction(string $channel_id, string $message_id, string $emoji, ?int $cache_ttl = null): array
+  {
+    return $this->api->request(
+      method: RequestTypes::DELETE,
+      endpoint: "channels/{$channel_id}/messages/{$message_id}/reactions/{$emoji}/@me",
+      cache_ttl: $cache_ttl
+    );
+  }
+
+  public function deleteUserReaction(string $channel_id, string $message_id, string $emoji, string $user_id, ?int $cache_ttl = null): array
+  {
+    return $this->api->request(
+      method: RequestTypes::DELETE,
+      endpoint: "channels/{$channel_id}/messages/{$message_id}/reactions/{$emoji}/{$user_id}",
+      cache_ttl: $cache_ttl
+    );
+  }
+
+  public function getReactions(string $channel_id, string $message_id, string $emoji, array $params = [], ?int $cache_ttl = 600): array
+  {
+    return $this->api->request(
+      method: RequestTypes::GET,
+      endpoint: "channels/{$channel_id}/messages/{$message_id}/reactions/{$emoji}",
+      options: [
+        'query' => $params
+      ],
+      cache_ttl: $cache_ttl
+    );
+  }
+
+  public function createChannelInvite(string $channel_id, array $params = [], string $reason = '', ?int $cache_ttl = null): array
   {
     return $this->api->request(
       method: RequestTypes::POST,

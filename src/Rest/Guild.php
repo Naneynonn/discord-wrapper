@@ -48,7 +48,7 @@ final class Guild
     );
   }
 
-  public function modifyGuild(string $guild_id, array $params = [], string $reason = '', ?int $cache_ttl = null)
+  public function modifyGuild(string $guild_id, array $params = [], string $reason = '', ?int $cache_ttl = null): array
   {
     return $this->api->request(
       method: RequestTypes::PATCH,
@@ -61,7 +61,7 @@ final class Guild
     );
   }
 
-  public function deleteGuild(string $guild_id)
+  public function deleteGuild(string $guild_id): array
   {
     return $this->api->request(
       method: RequestTypes::DELETE,
