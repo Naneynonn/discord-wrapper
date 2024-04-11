@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Naneynonn\Api;
 
-use Discord\Http\Request;
 use Naneynonn\Util\RateLimitHandler;
 use Naneynonn\Util\ConfigValidator;
 use Naneynonn\Util\HttpUtils;
