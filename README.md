@@ -6,6 +6,7 @@ Example:
 require 'vendor/autoload.php';
 
 use Naneynonn\Api\Client as DiscordApiClient;
+use Naneynonn\Enums\RequestTypes;
 
 $config = [
   'bot' => [
