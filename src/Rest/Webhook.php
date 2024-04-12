@@ -128,7 +128,7 @@ final class Webhook
       endpoint: "webhooks/{$webhook_id}/{$webhook_token}",
       options: [
         'query' => $params['query'] ?? [],
-        'json' => $params
+        'json' => $params['json'] ?? []
       ],
       cache_ttl: $cache_ttl
     );
@@ -177,7 +177,7 @@ final class Webhook
       endpoint: "webhooks/{$webhook_id}/{$webhook_token}/messages/{$message_id}",
       options: [
         'query' => $params['query'] ?? [],
-        'json' => $params
+        'json' => $params['json'] ?? []
       ],
       cache_ttl: $cache_ttl
     );
