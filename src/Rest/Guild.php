@@ -533,4 +533,147 @@ final class Guild
       cache_ttl: $cache_ttl
     );
   }
+
+  public function listScheduledEventsForGuild(string $guild_id, array $params = [], ?int $cache_ttl = 600): array
+  {
+    return $this->api->request(
+      method: RequestTypes::GET,
+      endpoint: "guilds/{$guild_id}/scheduled-events",
+      options: [
+        'query' => $params
+      ],
+      cache_ttl: $cache_ttl
+    );
+  }
+
+  public function createGuildScheduledEvent(string $guild_id, array $params = [], string $reason = '', ?int $cache_ttl = null): array
+  {
+    return $this->api->request(
+      method: RequestTypes::POST,
+      endpoint: "guilds/{$guild_id}/scheduled-events",
+      options: [
+        'json' => $params,
+        'reason' => $reason
+      ],
+      cache_ttl: $cache_ttl
+    );
+  }
+
+  public function getGuildScheduledEvent(string $guild_id, string $event_id, array $params = [], ?int $cache_ttl = 600): array
+  {
+    return $this->api->request(
+      method: RequestTypes::GET,
+      endpoint: "guilds/{$guild_id}/scheduled-events/{$event_id}",
+      options: [
+        'query' => $params
+      ],
+      cache_ttl: $cache_ttl
+    );
+  }
+
+  public function modifyGuildScheduledEvent(string $guild_id, string $event_id, array $params = [], string $reason = '', ?int $cache_ttl = null): array
+  {
+    return $this->api->request(
+      method: RequestTypes::PATCH,
+      endpoint: "guilds/{$guild_id}/scheduled-events/{$event_id}",
+      options: [
+        'json' => $params,
+        'reason' => $reason
+      ],
+      cache_ttl: $cache_ttl
+    );
+  }
+
+  public function deleteGuildScheduledEvent(string $guild_id, string $event_id, ?int $cache_ttl = null): array
+  {
+    return $this->api->request(
+      method: RequestTypes::DELETE,
+      endpoint: "guilds/{$guild_id}/scheduled-events/{$event_id}",
+      cache_ttl: $cache_ttl
+    );
+  }
+
+  public function getGuildScheduledEventUsers(string $guild_id, string $event_id, array $params = [], ?int $cache_ttl = 600): array
+  {
+    return $this->api->request(
+      method: RequestTypes::GET,
+      endpoint: "guilds/{$guild_id}/scheduled-events/{$event_id}/users",
+      options: [
+        'query' => $params
+      ],
+      cache_ttl: $cache_ttl
+    );
+  }
+
+  public function getGuildTemplate(string $code, ?int $cache_ttl = 600): array
+  {
+    return $this->api->request(
+      method: RequestTypes::GET,
+      endpoint: "guilds/templates/{$code}",
+      cache_ttl: $cache_ttl
+    );
+  }
+
+  public function createGuildFromGuildTemplate(string $code, array $params = [], ?int $cache_ttl = null): array
+  {
+    return $this->api->request(
+      method: RequestTypes::POST,
+      endpoint: "guilds/templates/{$code}",
+      options: [
+        'json' => $params
+      ],
+      cache_ttl: $cache_ttl
+    );
+  }
+
+  public function getGuildTemplates(string $guild_id, ?int $cache_ttl = 600): array
+  {
+    return $this->api->request(
+      method: RequestTypes::GET,
+      endpoint: "guilds/{$guild_id}/templates",
+      cache_ttl: $cache_ttl
+    );
+  }
+
+  public function createGuildTemplate(string $guild_id, array $params = [], ?int $cache_ttl = null): array
+  {
+    return $this->api->request(
+      method: RequestTypes::POST,
+      endpoint: "guilds/{$guild_id}/templates",
+      options: [
+        'json' => $params
+      ],
+      cache_ttl: $cache_ttl
+    );
+  }
+
+  public function syncGuildTemplate(string $guild_id, string $code, ?int $cache_ttl = null): array
+  {
+    return $this->api->request(
+      method: RequestTypes::PUT,
+      endpoint: "guilds/{$guild_id}/templates/{$code}",
+      cache_ttl: $cache_ttl
+    );
+  }
+
+  public function modifyGuildTemplate(string $guild_id, string $code, array $params = [], ?int $cache_ttl = null): array
+  {
+    return $this->api->request(
+      method: RequestTypes::PATCH,
+      endpoint: "guilds/{$guild_id}/templates/{$code}",
+      options: [
+        'json' => $params
+      ],
+      cache_ttl: $cache_ttl
+    );
+  }
+
+  public function deleteGuildTemplate(string $guild_id, string $code, ?int $cache_ttl = null): array
+  {
+    return $this->api->request(
+      method: RequestTypes::DELETE,
+      endpoint: "guilds/{$guild_id}/templates/{$code}",
+      cache_ttl: $cache_ttl
+    );
+  }
 }
