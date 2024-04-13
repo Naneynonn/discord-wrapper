@@ -7,7 +7,7 @@ namespace Naneynonn\Rest;
 use Naneynonn\Api\Client;
 use Naneynonn\Enums\RequestTypes;
 
-final class Voice
+final class User
 {
   private Client $api;
 
