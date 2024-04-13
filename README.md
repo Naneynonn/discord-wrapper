@@ -1,10 +1,11 @@
 # discord-wrapper
 
-Example:
-```
+## Example
+
+```php
 require 'vendor/autoload.php';
 
-use Naneynonn\DiscordApiClient;
+use Naneynonn\Api\Client as DiscordApiClient;
 
 $config = [
   'bot' => [
@@ -12,11 +13,28 @@ $config = [
   ]
 ];
 
-$options = [CURLOPT_FORBID_REUSE => false];
-$cache_ttl = 300;
-
 $api = new DiscordApiClient($config);
-$guild = $api->guild->getGuild(server_id: '');
+
+$guild = $api->guild->getGuild(guild_id: '');
 // or
-$guild = $api->request(method: 'GET', endpoint: '/guilds/{guild.id}', params: ['guild.id' => ''], options: $options, cache_ttl: $cache_ttl);
+$guild = $api->request(method: 'GET', endpoint: '/guilds/{guild.id}', options: ['params' => ['guild.id' => '']], cache_ttl: 600);
 ```
+
+## All Resources (Wiki)
+
+- [Application](https://github.com/Naneynonn/discord-wrapper/wiki/Application)
+- [Audit Log](https://github.com/Naneynonn/discord-wrapper/wiki/Audit-Log)
+- [Auto Moderation](https://github.com/Naneynonn/discord-wrapper/wiki/Auto-Moderation)
+- [Channel](https://github.com/Naneynonn/discord-wrapper/wiki/Channel)
+- [Emoji](https://github.com/Naneynonn/discord-wrapper/wiki/Emoji)
+- [Guild](https://github.com/Naneynonn/discord-wrapper/wiki/Guild)
+- [Invite](https://github.com/Naneynonn/discord-wrapper/wiki/Invite)
+- [Stage Instance](https://github.com/Naneynonn/discord-wrapper/wiki/Stage-Instance)
+- [Sticker](https://github.com/Naneynonn/discord-wrapper/wiki/Sticker)
+- [User](https://github.com/Naneynonn/discord-wrapper/wiki/User)
+- [Voice](https://github.com/Naneynonn/discord-wrapper/wiki/Voice)
+- [Webhook](https://github.com/Naneynonn/discord-wrapper/wiki/Webhook)
+
+## Cache and others
+
+- [Wiki](https://github.com/Naneynonn/discord-wrapper/wiki)
