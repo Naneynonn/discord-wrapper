@@ -30,6 +30,7 @@ $guild = $api->request(method: RequestTypes::GET, endpoint: '/guilds/{guild.id}'
 - [Emoji](https://github.com/Naneynonn/discord-wrapper/wiki/Emoji)
 - [Guild](https://github.com/Naneynonn/discord-wrapper/wiki/Guild)
 - [Invite](https://github.com/Naneynonn/discord-wrapper/wiki/Invite)
+- [Poll](https://github.com/Naneynonn/discord-wrapper/wiki/Poll)
 - [Stage Instance](https://github.com/Naneynonn/discord-wrapper/wiki/Stage-Instance)
 - [Sticker](https://github.com/Naneynonn/discord-wrapper/wiki/Sticker)
 - [User](https://github.com/Naneynonn/discord-wrapper/wiki/User)
