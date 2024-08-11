@@ -20,5 +20,8 @@
       "name": "Dmitry Naneynonn",
       "email": "support@discord.band"
     }
-  ]
+  ],
+  "require-dev": {
+    "phpstan/phpstan": "^1.10"
+  }
 }
