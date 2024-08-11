@@ -2,8 +2,6 @@
 
 require '../vendor/autoload.php';
 
-use Naneynonn\Rest\Voice;
-
 class MarkdownGeneratorForCurrentClass
 {
   private \ReflectionClass $reflectionClass;
@@ -116,7 +114,7 @@ class MarkdownGeneratorForCurrentClass
 }
 
 // Использование генератора Markdown в конце вашего PHP файла.
-$cln = Voice::class;
+$cln = \Naneynonn\Rest\Poll::class;
 $generator = new MarkdownGeneratorForCurrentClass($cln);
 $markdownDocumentation = $generator->generate();
 $markdownFilename = $cln . '_Documentation.md';
