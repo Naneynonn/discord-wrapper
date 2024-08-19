@@ -72,6 +72,9 @@ final class User
     return $this->api->request(
       method: RequestTypes::DELETE,
       endpoint: "users/@me/guilds/{$guild_id}",
+      options: [
+        'json' => []
+      ],
       cache_ttl: $cache_ttl
     );
   }
