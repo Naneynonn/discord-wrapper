@@ -19,6 +19,10 @@ class RateLimitHandler
       throw new RuntimeException("Rate limit exceeded, retry not allowed.");
     }
 
+    if (session_status() === PHP_SESSION_ACTIVE) {
+      session_write_close();
+    }
+
     $retryAfter = $response->hasHeader('Retry-After') ? (int) $response->getHeaderLine('Retry-After') : 0;
     usleep($retryAfter * 1000000);
 
