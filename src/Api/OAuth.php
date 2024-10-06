@@ -54,15 +54,9 @@ final class OAuth
     $_SESSION['access_token'] = $response['access_token'] ?? '';
   }
 
-  public function getUser(): void
+  public function getUser(): array
   {
-    $response = $this->api->apiRequest(method: RequestTypes::GET, url: 'users/@me', authType: 'bearer');
-
-    $_SESSION['user'] = $response;
-    $_SESSION['username'] = $response['username'];
-    $_SESSION['discrim'] = $response['discriminator'];
-    $_SESSION['user_id'] = $response['id'];
-    $_SESSION['user_avatar'] = $response['avatar'];
+    return $this->api->apiRequest(method: RequestTypes::GET, url: 'users/@me', authType: 'bearer');
   }
 
   public function getGuilds(?int $cache_ttl = 600): array
