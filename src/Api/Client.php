@@ -54,13 +54,13 @@ final class Client extends HttpUtils
         'version' => self::HEADERS['version']
       ],
       'proxy' => $this->proxy,
-      'http_errors' => false, // Отключаем исключения для HTTP-ошибок
+      'http_errors' => false,
     ]);
   }
 
   public function apiRequest(RequestTypes $method, string $url, array $options = [], string $authType = 'bot', ?string $customKey = null, ?int $cache_ttl = null): array
   {
-    $defaultHeaders = $this->getHeadersByType($authType);
+    $defaultHeaders = $this->getHeadersByType(type: $authType, method: $method);
 
     if (isset($options['headers']) && is_array($options['headers'])) {
       $options['headers'] = array_merge($defaultHeaders, $options['headers']);
@@ -72,7 +72,7 @@ final class Client extends HttpUtils
       $key = $this->cache->generateKey(url: $url, data: $options, customKey: $customKey);
 
       $bodyFunction = function () use ($method, $url, $options) {
-        $request = fn () => $this->http->request(method: $method->value, uri: $url, options: $options);
+        $request = fn() => $this->http->request(method: $method->value, uri: $url, options: $options);
 
         $response = $request();
         $response = RateLimitHandler::handle(response: $response, retryRequest: $request, retry: $this->retry);
@@ -109,20 +109,27 @@ final class Client extends HttpUtils
     return $endpoint;
   }
 
-  private function getHeadersByType(string $type): array
+  private function getHeadersByType(string $type, RequestTypes $method): array
   {
-    return match ($type) {
+    $headers = match ($type) {
       'bot' => [
-        'Content-Type' => 'application/json',
         'Authorization' => 'Bot ' . $this->token,
       ],
       'bearer' => [
-        'Content-Type' => 'application/x-www-form-urlencoded',
         'Authorization' => 'Bearer ' . $_SESSION['access_token'],
       ],
       default => throw new InvalidArgumentException("Invalid auth type: {$type}")
     };
+
+    if ($method !== RequestTypes::DELETE) {
+      $headers['Content-Type'] = $type === 'bot'
+        ? 'application/json'
+        : 'application/x-www-form-urlencoded';
+    }
+
+    return $headers;
   }
+
 
   public function request(RequestTypes $method, string $endpoint, array $options = [], ?int $cache_ttl = null): array
   {
