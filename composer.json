@@ -4,7 +4,8 @@
   "type": "library",
   "require": {
     "guzzlehttp/guzzle": "^7.8",
-    "predis/predis": "^2.2"
+    "predis/predis": "^3.2",
+    "monolog/monolog": "^3.9"
   },
   "autoload": {
     "psr-4": {
@@ -22,6 +23,6 @@
     }
   ],
   "require-dev": {
-    "phpstan/phpstan": "^1.10"
+    "phpstan/phpstan": "^2.1"
   }
 }
