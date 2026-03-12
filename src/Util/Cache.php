@@ -33,7 +33,7 @@ final class Cache
 
   private static function unpack(?string $data): ?array
   {
-    if (is_null($data)) {
+    if (is_null($data) || $data == '') {
       return null;
     }
 

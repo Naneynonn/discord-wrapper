@@ -74,7 +74,7 @@ final class Client extends HttpUtils
         return $response->getBody()->getContents();
       };
 
-      return Cache::request(redis: $this->redis, fn: $bodyFunction, params: $params, ttl: $cache_ttl ?? 0);
+      return Cache::request(redis: $this->redis, fn: $bodyFunction, params: $params, ttl: $cache_ttl ?? 0) ?? [];
     } catch (GuzzleException $e) {
       throw new RuntimeException("HTTP request failed: " . $e->getMessage());
     } catch (JsonException $e) {
