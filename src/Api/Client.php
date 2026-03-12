@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace Naneynonn\Api;
 
-use Naneynonn\Util\RateLimitHandler;
 use Naneynonn\Util\ConfigValidator;
 use Naneynonn\Util\HttpUtils;
+use Naneynonn\Util\RateLimit;
+use Naneynonn\Util\Cache;
 
-use Naneynonn\Cache\CacheManager;
 use Naneynonn\Const\Config;
 use Naneynonn\Enums\RequestTypes;
 
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\GuzzleException;
+use Predis\Client as RedisClient;
 
 use JsonException;
 use RuntimeException;
@@ -24,7 +25,8 @@ final class Client extends HttpUtils
   use Config;
 
   private GuzzleClient $http;
-  private CacheManager $cache;
+  private RedisClient $redis;
+
   private string $token;
 
   private ?array $proxy = null;
@@ -39,12 +41,12 @@ final class Client extends HttpUtils
     $this->proxy = $config['proxy'] ?? $this->proxy;
     $this->retry = $config['retry'] ?? $this->retry;
 
-    $this->cache = new CacheManager;
+    $this->redis = $config['cache'] ?? new RedisClient();
 
-    $this->startClient();
+    $this->init();
   }
 
-  private function startClient(): void
+  private function init(): void
   {
     $this->http = new GuzzleClient([
       'base_uri' => self::BASE_URI,
@@ -60,45 +62,24 @@ final class Client extends HttpUtils
 
   public function apiRequest(RequestTypes $method, string $url, array $options = [], string $authType = 'bot', ?string $customKey = null, ?int $cache_ttl = null): array
   {
-    $defaultHeaders = $this->getHeadersByType(type: $authType, method: $method);
-
-    if (isset($options['headers']) && is_array($options['headers'])) {
-      $options['headers'] = array_merge($defaultHeaders, $options['headers']);
-    } else {
-      $options['headers'] = $defaultHeaders;
-    }
+    $options = $this->buildOptions(method: $method, authType: $authType, options: $options);
+    $params = $this->buildCacheParams(url: $url, options: $options, customKey: $customKey);
 
     try {
-      $key = $this->cache->generateKey(url: $url, data: $options, customKey: $customKey);
-
       $bodyFunction = function () use ($method, $url, $options) {
         $request = fn() => $this->http->request(method: $method->value, uri: $url, options: $options);
 
         $response = $request();
-        $response = RateLimitHandler::handle(response: $response, retryRequest: $request, retry: $this->retry);
+        $response = RateLimit::handle(response: $response, request: $request, retry: $this->retry);
         return $response->getBody()->getContents();
       };
 
-      return $this->cache->requestWithCache(key: $key, requestFunction: $bodyFunction, ttl: $cache_ttl);
+      return Cache::request(redis: $this->redis, fn: $bodyFunction, params: $params, ttl: $cache_ttl ?? 0);
     } catch (GuzzleException $e) {
       throw new RuntimeException("HTTP request failed: " . $e->getMessage());
     } catch (JsonException $e) {
       throw new RuntimeException("Failed to decode JSON response: " . $e->getMessage());
     }
-  }
-
-  public function __get($name)
-  {
-    $serviceName = ucfirst(strtolower($name));
-    $className = "\\Naneynonn\\Rest\\{$serviceName}";
-
-    if (!isset($this->services[$name])) {
-      if (class_exists($className)) {
-        $this->services[$name] = new $className($this);
-      }
-    }
-
-    return $this->services[$name];
   }
 
   private function generateUrl(string $endpoint, array $params): string
@@ -107,6 +88,13 @@ final class Client extends HttpUtils
       $endpoint = str_replace("{{$key}}", $value, $endpoint);
     }
     return $endpoint;
+  }
+
+  private function buildCacheParams(string $url, array $options, ?string $customKey = null): array
+  {
+    return !is_null($customKey)
+      ? ['custom_key' => $customKey]
+      : ['url' => $url, 'options' => $options];
   }
 
   private function getHeadersByType(string $type, RequestTypes $method): array
@@ -130,6 +118,16 @@ final class Client extends HttpUtils
     return $headers;
   }
 
+  private function buildOptions(RequestTypes $method, string $authType, array $options = []): array
+  {
+    $defaultHeaders = $this->getHeadersByType(type: $authType, method: $method);
+
+    $options['headers'] = (isset($options['headers']) && is_array($options['headers']))
+      ? array_merge($defaultHeaders, $options['headers'])
+      : $defaultHeaders;
+
+    return $options;
+  }
 
   public function request(RequestTypes $method, string $endpoint, array $options = [], ?int $cache_ttl = null): array
   {
@@ -147,5 +145,19 @@ final class Client extends HttpUtils
     unset($options['params'], $options['reason']);
 
     return $this->apiRequest(method: $method, url: $url, options: $options, cache_ttl: $cache_ttl);
+  }
+
+  public function __get($name)
+  {
+    $serviceName = ucfirst(strtolower($name));
+    $className = "\\Naneynonn\\Rest\\{$serviceName}";
+
+    if (!isset($this->services[$name])) {
+      if (class_exists($className)) {
+        $this->services[$name] = new $className($this);
+      }
+    }
+
+    return $this->services[$name];
   }
 }
