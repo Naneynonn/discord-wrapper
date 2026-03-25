@@ -37,6 +37,12 @@ final class EmbedBuilder
     return $this;
   }
 
+  public function colorHex(string $hex): self
+  {
+    $this->data['color'] = hexdec(ltrim($hex, '#'));
+    return $this;
+  }
+
   public function timestamp(string $iso8601): self
   {
     $this->data['timestamp'] = $iso8601;

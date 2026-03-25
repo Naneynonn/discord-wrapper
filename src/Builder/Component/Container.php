@@ -32,6 +32,12 @@ final class Container
     return $this;
   }
 
+  public function accentColorHex(string $hex): self
+  {
+    $this->accentColor = (int) hexdec(ltrim($hex, '#'));
+    return $this;
+  }
+
   public function spoiler(bool $spoiler = true): self
   {
     $this->spoiler = $spoiler;
