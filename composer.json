@@ -4,9 +4,9 @@
   "type": "library",
   "require": {
     "php": ">=8.5",
-    "guzzlehttp/guzzle": "^7.8",
-    "predis/predis": "^3.2",
-    "monolog/monolog": "^3.9"
+    "guzzlehttp/guzzle": "^7.13",
+    "predis/predis": "^3.5",
+    "monolog/monolog": "^3.10"
   },
   "autoload": {
     "psr-4": {
