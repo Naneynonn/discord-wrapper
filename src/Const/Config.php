@@ -12,7 +12,7 @@ trait Config
   private const BASE_URI = self::DISCORD . '/api/' . self::VERSION . '/';
   private const HEADERS = [
     'Content-Type' => 'application/json',
-    'version' => 3.0,
+    'version' => '3.0',
     'User-Agent' => 'Discord-Wrapper/3.0',
     'Accept-Encoding' => 'gzip, deflate',
   ];

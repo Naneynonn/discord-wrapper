@@ -4,25 +4,23 @@ declare(strict_types=1);
 
 namespace Naneynonn\Api;
 
+use Naneynonn\Enums\RequestTypes;
 use Naneynonn\Http\HttpClient;
-use Naneynonn\Http\NullCache;
 
+use Naneynonn\Util\Cache;
 use Naneynonn\Util\ConfigValidator;
 use Naneynonn\Util\HttpUtils;
-use Naneynonn\Util\Cache;
-
-use Naneynonn\Enums\RequestTypes;
 
 use Predis\Client as RedisClient;
 
+use InvalidArgumentException;
 use JsonException;
 use RuntimeException;
-use InvalidArgumentException;
 
 final class Client
 {
   private HttpClient $http;
-  private RedisClient|NullCache $redis;
+  private RedisClient $redis;
 
   private string $token;
   private array $services = [];
@@ -32,17 +30,9 @@ final class Client
     ConfigValidator::validate($config);
 
     $this->token = $config['bot']['token'];
+    $this->redis = $config['cache'] ?? new RedisClient();
 
-    $this->redis = $config['cache'] ?? (
-      class_exists(RedisClient::class)
-      ? new RedisClient()
-      : new NullCache()
-    );
-
-    $this->http = new HttpClient(
-      proxy: $config['proxy'] ?? null,
-      retry: $config['retry'] ?? true,
-    );
+    $this->http = new HttpClient(proxy: $config['proxy'] ?? null, retry: $config['retry'] ?? true, timeout: (float) ($config['timeout'] ?? 10.0), connectTimeout: (float) ($config['connect_timeout'] ?? 3.0));
   }
 
   public function apiRequest(RequestTypes $method, string $url, array $options = [], string $authType = 'bot', ?string $customKey = null, ?int $cache_ttl = null): array
@@ -50,12 +40,55 @@ final class Client
     $options = $this->buildOptions(method: $method, authType: $authType, options: $options);
     $params = $this->buildCacheParams(url: $url, options: $options, customKey: $customKey);
 
-    try {
-      $bodyFunction = fn() => $this->http->send(method: $method, url: $url, options: $options);
+    $ttl = ($method === RequestTypes::GET)
+      ? ($cache_ttl ?? 0)
+      : 0;
 
-      return Cache::request(redis: $this->redis, fn: $bodyFunction, params: $params, ttl: $cache_ttl ?? 0) ?? [];
+    $lastStatus = null;
+    $lastContentType = '';
+    $lastBody = null;
+
+    try {
+      $bodyFunction = function () use ($method, $url, $options, &$lastStatus, &$lastContentType, &$lastBody): string {
+        $response = $this->http->sendResponse(method: $method, url: $url, options: $options);
+        $body = $response->getBody()->getContents();
+
+        $lastStatus = $response->getStatusCode();
+        $lastContentType = $response->getHeaderLine('Content-Type');
+        $lastBody = $body;
+
+        return $body;
+      };
+
+      $shouldCache = static function () use (&$lastStatus): bool {
+        return $lastStatus !== null && $lastStatus >= 200 && $lastStatus < 300;
+      };
+
+      return Cache::request(redis: $this->redis, fn: $bodyFunction, params: $params, ttl: $ttl, shouldCache: $shouldCache) ?? [];
     } catch (JsonException $e) {
-      throw new RuntimeException("Failed to decode JSON response: " . $e->getMessage());
+      if ($lastStatus !== null && ($lastStatus < 200 || $lastStatus >= 300)) {
+        return [
+          'code' => $lastStatus,
+          'message' => self::httpErrorMessage(status: $lastStatus, body: $lastBody ?? ''),
+        ];
+      }
+
+      $context = [];
+
+      if ($lastStatus !== null) {
+        $context[] = "HTTP {$lastStatus}";
+      }
+
+      if ($lastContentType !== '') {
+        $context[] = "Content-Type {$lastContentType}";
+      }
+
+      $suffix = !empty($context)
+        ? ' (' . implode(', ', $context) . ')'
+        : '';
+      $preview = self::bodyPreview($lastBody ?? '');
+
+      throw new RuntimeException('Failed to decode JSON response' . $suffix . ': ' . $e->getMessage() . ($preview !== '' ? ". Body: {$preview}" : ''), previous: $e);
     }
   }
 
@@ -91,6 +124,29 @@ final class Client
     return $this->services[$name];
   }
 
+  private static function httpErrorMessage(int $status, string $body): string
+  {
+    $preview = self::bodyPreview($body);
+    return "Discord API error ({$status})" . ($preview !== '' ? ": {$preview}" : '');
+  }
+
+  private static function bodyPreview(string $body): string
+  {
+    if ($body === '') {
+      return '';
+    }
+
+    $body = html_entity_decode(strip_tags($body), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $body = preg_replace('/\s+/u', ' ', $body) ?? $body;
+    $body = trim($body);
+
+    if (strlen($body) > 500) {
+      $body = substr($body, 0, 500) . '…';
+    }
+
+    return $body;
+  }
+
   private function generateUrl(string $endpoint, array $params): string
   {
     foreach ($params as $key => $value) {
@@ -110,7 +166,7 @@ final class Client
   {
     $headers = match ($type) {
       'bot'    => ['Authorization' => 'Bot ' . $this->token],
-      'bearer' => ['Authorization' => 'Bearer ' . $_SESSION['access_token']],
+      'bearer' => ['Authorization' => 'Bearer ' . ($_SESSION['access_token'] ?? '')],
       default  => throw new InvalidArgumentException("Invalid auth type: {$type}"),
     };
 

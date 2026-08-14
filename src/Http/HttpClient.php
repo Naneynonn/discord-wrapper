@@ -10,6 +10,7 @@ use Naneynonn\Util\RateLimit;
 
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\GuzzleException;
+use Psr\Http\Message\ResponseInterface;
 
 use RuntimeException;
 
@@ -20,7 +21,7 @@ class HttpClient
   private GuzzleClient $guzzle;
   private bool $retry;
 
-  public function __construct(?array $proxy = null, bool $retry = true, ?string $baseUri = null)
+  public function __construct(?array $proxy = null, bool $retry = true, ?string $baseUri = null, float $timeout = 10.0, float $connectTimeout = 3.0)
   {
     $this->retry = $retry;
 
@@ -31,28 +32,28 @@ class HttpClient
         'Accept-Encoding' => self::HEADERS['Accept-Encoding'],
         'version'         => self::HEADERS['version'],
       ],
-      'proxy'       => $proxy,
-      'http_errors' => false,
+      'proxy'           => $proxy,
+      'http_errors'     => false,
+      'timeout'         => $timeout,
+      'connect_timeout' => $connectTimeout,
     ]);
   }
 
   public function send(RequestTypes $method, string $url, array $options = []): string
   {
+    return $this->sendResponse(method: $method, url: $url, options: $options)->getBody()->getContents();
+  }
+
+  public function sendResponse(RequestTypes $method, string $url, array $options = []): ResponseInterface
+  {
     try {
       $request = fn() => $this->guzzle->request(method: $method->value, uri: $url, options: $options);
 
       $response = $request();
-      $response = RateLimit::handle(response: $response, request: $request, retry: $this->retry);
 
-      // $status = $response->getStatusCode();
-      // if ($status >= 400) {
-      //   $body = $response->getBody()->getContents();
-      //   throw new RuntimeException("Discord API error ({$status}): {$body}");
-      // }
-
-      return $response->getBody()->getContents();
+      return RateLimit::handle(response: $response, request: $request, retry: $this->retry);
     } catch (GuzzleException $e) {
-      throw new RuntimeException("HTTP request failed: " . $e->getMessage());
+      throw new RuntimeException('HTTP request failed: ' . $e->getMessage(), previous: $e);
     }
   }
 }
