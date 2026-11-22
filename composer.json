@@ -4,7 +4,7 @@
   "type": "library",
   "require": {
     "php": ">=8.5",
-    "guzzlehttp/guzzle": "^7.13",
+    "guzzlehttp/guzzle": "^8.5",
     "predis/predis": "^3.5",
     "monolog/monolog": "^3.10"
   },
